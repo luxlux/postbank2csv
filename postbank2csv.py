@@ -46,21 +46,21 @@ def get_between (text, first_needle, second_needle):
 
 def sub_parse_other(statement):
 
-    if statement['Type'] == "SDD Lastschr" or statement['Type'] == "Kartenzahlung":
-        statement['Empfaenger'] = get_between(statement['other'], None,"Referenz")
-        einreicher_verwendungszweck = get_between(statement['other'],"Einreicher-ID",None)
+    if statement['Typ'] == "SDD Lastschr" or statement['Typ'] == "Kartenzahlung":
+        statement['Empfaenger'] = get_between(statement['Zusammen'], None,"Referenz")
+        einreicher_verwendungszweck = get_between(statement['Zusammen'],"Einreicher-ID",None)
         statement['Verwendungszweck'] = get_between(einreicher_verwendungszweck, " ", None) # alles nach dem ersten leerzeichen
         statement['Einreicher-id'] = get_between(einreicher_verwendungszweck, None, " ") # nur bis zum ersten leerzeichen
-        statement['Referenz'] = get_between(statement['other'],"Referenz","Mandat")
-        statement['Mandat'] = get_between(statement['other'],"Mandat","Einreicher-ID")
+        statement['Referenz'] = get_between(statement['Zusammen'],"Referenz","Mandat")
+        statement['Mandat'] = get_between(statement['Zusammen'],"Mandat","Einreicher-ID")
 
-    elif statement['Type'] == "Gutschr.SEPA" or statement['Type'] == "D Gut SEPA" or statement['Type'] == "Echtzeitüberw Gutschrift" :
-        statement['Empfaenger'] = get_between(statement['other'], None,"Referenz")
-        statement['Verwendungszweck'] = get_between(statement['other'],"Verwendungszweck",None)
-        statement['Referenz'] = get_between(statement['other'],"Referenz","Verwendungszweck")
+    elif statement['Typ'] == "Gutschr.SEPA" or statement['Typ'] == "D Gut SEPA" or statement['Typ'] == "Echtzeitüberw Gutschrift" :
+        statement['Empfaenger'] = get_between(statement['Zusammen'], None,"Referenz")
+        statement['Verwendungszweck'] = get_between(statement['Zusammen'],"Verwendungszweck",None)
+        statement['Referenz'] = get_between(statement['Zusammen'],"Referenz","Verwendungszweck")
 
     else:
-        statement['Verwendungszweck'] = statement['other']
+        statement['Verwendungszweck'] = statement['Zusammen']
 
     return statement
 
@@ -123,9 +123,9 @@ def parse_statements_from_file(pdf_filename):
             if in_statement:
                 if statement_first_line:
                     try:
-                        statement['Value'] = ''.join(line_token[-2:]).replace('.', '').replace(',', '.')
-                        statement['Value'] = statement['Value'].replace(".",",") # Beträge wieder in Komma Schreibweise zurückführen
-                        # print (statement['value'])
+                        statement['Betrag'] = ''.join(line_token[-2:]).replace('.', '').replace(',', '.')
+                        statement['Betrag'] = statement['Betrag'].replace(".",",") # Beträge wieder in Komma Schreibweise zurückführen
+                        # print (statement['Betrag'])
                     except ValueError:
                         in_statement = False
                         continue
@@ -137,11 +137,11 @@ def parse_statements_from_file(pdf_filename):
                     else:
                         date_year = file_year
 
-                    statement['Date'] = f"{date_day}.{date_month}.{str(date_year)}"
+                    statement['Buchungsdatum'] = f"{date_day}.{date_month}.{str(date_year)}"
                     #print (line_token[1:-2], line_token)
 
-                    statement['Type'] = ' '.join(line_token[1:-2])
-                    statement['other'] = ""
+                    statement['Typ'] = ' '.join(line_token[1:-2])
+                    statement['Zusammen'] = ""
                     statement_first_line = False
                 else:
                     #print(line_token, line_token[-1][-1])
@@ -150,8 +150,8 @@ def parse_statements_from_file(pdf_filename):
                         space_needed = "" # kein leerzeichen
                     #print(line_token, line_token[-1][-1])
 
-                    statement['other'] += ' '.join(line_token)
-                    statement['other'] += space_needed
+                    statement['Zusammen'] += ' '.join(line_token)
+                    statement['Zusammen'] += space_needed
                     space_needed = " "
         #print(line_token)
         last_line_token = line_token
@@ -167,7 +167,7 @@ def parse_statements_from_file(pdf_filename):
 
 def write_statements_as_csv(statements):
 
-    fieldnames = ['Date', 'Type', 'Value', 'Empfaenger','Verwendungszweck', 'Einreicher-id', 'Referenz', 'Mandat' ,'other']
+    fieldnames = ['Buchungsdatum','Empfaenger' ,'Verwendungszweck', 'Betrag', 'Typ', 'Einreicher-id', 'Referenz', 'Mandat' ,'Zusammen']
     writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames, restval='',extrasaction='ignore')
     writer.writeheader()
     for statement in statements:
