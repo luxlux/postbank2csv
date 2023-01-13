@@ -44,7 +44,7 @@ def get_between (text, first_needle, second_needle):
 
     return text[first_needle_idx + len(first_needle):second_needle_idx].strip()
 
-def sub_parse_other(statement):
+def sub_parse_zusammen(statement):
 
     if statement['Typ'] == "SDD Lastschr" or statement['Typ'] == "Kartenzahlung":
         statement['Empfaenger'] = get_between(statement['Zusammen'], None,"Referenz")
@@ -116,7 +116,7 @@ def parse_statements_from_file(pdf_filename):
             if not line_token:
                 in_statement = False
                 if statement: # if dict not empty
-                    statements.append(sub_parse_other(statement))
+                    statements.append(sub_parse_zusammen(statement))
                     #print("new statement written", statement)
                     statement = {}
 
